@@ -51,4 +51,58 @@ real    0m0.009s
 user    0m0.004s
 sys     0m0.000s
 
+Python Reading 
+8,000
+Time taken to read: 0.000926 seconds
+
+real    0m0.033s
+user    0m0.022s
+sys     0m0.008s
+
+80,000
+Time taken to read: 0.000646 seconds
+
+real    0m0.031s
+user    0m0.025s
+sys     0m0.004s
+
+800,000
+Time taken to read: 0.001697 seconds
+
+real    0m0.032s
+user    0m0.021s
+sys     0m0.009s
+8,000,000
+Time taken to read: 0.001180 seconds
+
+real    0m0.035s
+user    0m0.023s
+sys     0m0.008s
+
+C code
+8,000
+Time taken to read: 0.000310 seconds
+
+real    0m0.006s
+user    0m0.000s
+sys     0m0.004s
+80,000
+Time taken to read: 0.000385 seconds
+
+real    0m0.007s
+user    0m0.000s
+sys     0m0.004s
+
+800,000
+Time taken to read: 0.000268 seconds
+
+real    0m0.005s
+user    0m0.000s
+sys     0m0.004s
+8,000,000
+Time taken to read: 0.000382 seconds
+
+real    0m0.006s
+user    0m0.000s
+sys     0m0.004s
 
