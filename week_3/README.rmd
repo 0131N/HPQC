@@ -1,0 +1,28 @@
+Run with mpirun -np 5 bin/comm_test_mpi
+
+2
+Hello, I am 0 of 2. Received 10 from Rank 1
+Hello, I am 1 of 2. Sent 10 to Rank 0
+3
+Hello, I am 0 of 3. Received 10 from Rank 1
+Hello, I am 0 of 3. Received 20 from Rank 2
+Hello, I am 1 of 3. Sent 10 to Rank 0
+Hello, I am 2 of 3. Sent 20 to Rank 0
+
+4 Processors
+Hello, I am 2 of 4. Sent 20 to Rank 0
+Hello, I am 3 of 4. Sent 30 to Rank 0
+Hello, I am 0 of 4. Received 10 from Rank 1
+Hello, I am 0 of 4. Received 20 from Rank 2
+Hello, I am 0 of 4. Received 30 from Rank 3
+Hello, I am 1 of 4. Sent 10 to Rank 0
+
+5
+Hello, I am 4 of 5. Sent 40 to Rank 0
+Hello, I am 2 of 5. Sent 20 to Rank 0
+Hello, I am 3 of 5. Sent 30 to Rank 0
+Hello, I am 0 of 5. Received 10 from Rank 1
+Hello, I am 0 of 5. Received 20 from Rank 2
+Hello, I am 1 of 5. Sent 10 to Rank 0
+Hello, I am 0 of 5. Received 30 from Rank 3
+Hello, I am 0 of 5. Received 40 from Rank 4
