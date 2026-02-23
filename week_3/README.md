@@ -98,7 +98,8 @@ These results map to a linear equation representing network transit:
 
 
  $$y = mx + c$$ 
-Where:
+ 
+ Where:
 * y  = Total time to send
 * x  = Message size (Bytes)
 * c  = Latency (The y-intercept; time to send 0 bytes)
