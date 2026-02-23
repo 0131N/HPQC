@@ -27,7 +27,7 @@ Hello, I am 0 of 5. Received 20 from Rank 2
 Hello, I am 1 of 5. Sent 10 to Rank 0
 Hello, I am 0 of 5. Received 30 from Rank 3
 Hello, I am 0 of 5. Received 40 from Rank 4
-
+```
 
 Analysis of the Behavior:
 
@@ -97,13 +97,13 @@ Scaled the message size from 8 Bytes up to 2 MiB to measure network capacity.
 These results map to a linear equation representing network transit:
 
 
-
+$y = mx + c$
 Where:
 
-*  = Total time to send
-*  = Message size (Bytes)
-*  = **Latency** (The y-intercept; time to send 0 bytes)
-*  =  (The slope)
+y  = Total time to send
+x  = Message size (Bytes)
+c  = **Latency** (The y-intercept; time to send 0 bytes)
+m = $1/(Bandwidth) =  The slope
 
 ---
 
