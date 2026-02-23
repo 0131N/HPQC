@@ -5,7 +5,7 @@
 
 This project explores the performance differences between Compiled and Interpreted languages. By benchmarking basic operations, repeat addition, and file I/O, we evaluate how system overhead and language architecture impact execution time.
 
-## 2. Methodology
+## 2. Method
 
 Utilised two primary methods for measuring performance:
 
@@ -42,14 +42,14 @@ The following data compares C and Python performance across file writing and rea
 
 ---
 
-## 4. Evaluation & Conclusions
+## 4.Conclusions
 
 ### C vs. Python Efficiency
 
 Across all tests, C consistently outperformed Python. At the highest scale (10 million lines):
 
-* **Writing:** C was approximately **4.7x faster** than Python in internal logic.
-* **Reading:** C was approximately **2.7x faster** than Python.
+* **Writing:** C was approximately 4.7x faster than Python in internal logic.
+* **Reading:** C was approximately 2.7x faster than Python.
 
 This disparity is primarily due to Python being an interpreted language. The Python interpreter must translate code into machine instructions at runtime, whereas the C binary is already in machine code, allowing the CPU to execute instructions with minimal overhead.
 
@@ -91,4 +91,4 @@ time python3 week_2/file_read.py 1000000
 
 ---
 
-**Would you like me to double-check the logic in your `file_write.c` or `file_read.c` scripts to ensure they are handling the memory correctly for those 10-million-line tests?**
+
