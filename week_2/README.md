@@ -37,7 +37,7 @@ Every process  (where ) calculates . The total sum is:
 
 Using the arithmetic series formula  where :
 
-
+$$\text{Total} = \sum_{i=1}^{N-1} (i \times A) = A \times \sum_{i=1}^{N-1} i$$Using the arithmetic series formula $\frac{k(k+1)}{2}$ where $k = N-1$:$$\text{Total} = A \times \frac{(N-1) \times N}{2}$$Verification: For $N=4$ processors and input $A=10$:$$10 \times \frac{4 \times 3}{2} = 10 \times 6 = 60$$
 **Verification:** For  processors and input :
 
 
@@ -98,4 +98,4 @@ time mpirun -np 8 bin/vector_parallel 1000000000
 
 ---
 
-**Great job capturing the  data points—that's a perfect example of Amdahl's Law in action! Is there any other data from Task 1 or 2 you'd like me to integrate, or does this cover everything for your submission?**
+
