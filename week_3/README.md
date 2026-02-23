@@ -18,7 +18,7 @@ To establish a baseline, compiled and ran the un-functionalised comm_test_mpi co
 Observations from the 4- and 5-Processor Runs:
 When running with 4 and 5 processors, the terminal output became highly staggered. For example, in the 5-processor run:
 
-Plaintext
+```bash
 Hello, I am 4 of 5. Sent 40 to Rank 0
 Hello, I am 2 of 5. Sent 20 to Rank 0
 Hello, I am 3 of 5. Sent 30 to Rank 0
