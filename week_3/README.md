@@ -97,13 +97,13 @@ Scaled the message size from 8 Bytes up to 2 MiB to measure network capacity.
 These results map to a linear equation representing network transit:
 
 
-$y = mx + c$
-Where:
-
-y  = Total time to send
-x  = Message size (Bytes)
-c  = **Latency** (The y-intercept; time to send 0 bytes)
-m = $1/(Bandwidth) =  The slope
+$y = mx + c$ *
+Where:*
+*
+y  = Total time to send*
+x  = Message size (Bytes)*
+c  = **Latency** (The y-intercept; time to send 0 bytes)*
+m = $1/(Bandwidth) =  The slope*
 
 ---
 
