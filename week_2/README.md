@@ -5,7 +5,7 @@
 
 ## 1. Introduction
 
-This lab transitions from single-core performance to **Distributed Memory Parallelism** using the Message Passing Interface (MPI). Multiple processors could be used to solve a single problem, moving from simple "Hello World" broadcasts to complex parallel vector summations.
+This lab transitions from single-core performance to Distributed Memory Programming using the Message Passing Interface (MPI). Multiple processors could be used to solve a single problem, moving from simple "Hello World" broadcasts to complex parallel vector summations.
 
 ## 2. Method
 
@@ -17,7 +17,7 @@ We tested the basic MPI synchronization by scaling the "Hello World" program fro
 
 ### Task 2: Root-Client Communication Logic
 
-We implemented a "Traffic Director" architecture to perform distributed arithmetic:
+We implemented architecture to perform distributed arithmetic:
 
 * **Root Task (Rank 0):** Acts as the aggregator. It initializes the sum to 0 and enters a loop to `MPI_Recv` values from all other processes.
 * **Client Task (Rank > 0):** Performs a local calculation () and uses `MPI_Send` to transmit the result to the Root.
