@@ -3,13 +3,13 @@
 
 ## 1. Introduction
 
-This project explores the performance differences between **compiled (C)** and **interpreted (Python)** languages. By benchmarking basic operations, repeat addition, and file I/O, we evaluate how system overhead and language architecture impact execution time.
+This project explores the performance differences between Compiled and Interpreted languages. By benchmarking basic operations, repeat addition, and file I/O, we evaluate how system overhead and language architecture impact execution time.
 
 ## 2. Methodology
 
 Utilised two primary methods for measuring performance:
 
-1. **External Timing:** Using the Linux `time` command to measure **Real** (wall-clock), **User** (CPU time in code), and **Sys** (kernel/system tasks) time.
+1. **External Timing:** Using the Linux `time` command to measure Real, User, and System time.
 2. **Internal Timing:** Using `time.h` in C and `time` in Python to measure the duration of specific code blocks, excluding program startup and memory allocation overhead.
 
 ---
@@ -46,7 +46,7 @@ The following data compares C and Python performance across file writing and rea
 
 ### C vs. Python Efficiency
 
-Across all tests, **C consistently outperformed Python**. At the highest scale (10 million lines):
+Across all tests, C consistently outperformed Python. At the highest scale (10 million lines):
 
 * **Writing:** C was approximately **4.7x faster** than Python in internal logic.
 * **Reading:** C was approximately **2.7x faster** than Python.
@@ -55,7 +55,7 @@ This disparity is primarily due to Python being an interpreted language. The Pyt
 
 ### Scaling and Complexity
 
-Both languages scaled **linearly ()**. As the input size increased by a factor of 10, the runtime generally increased by a factor of 10. However, the "startup cost" of Python is much more apparent at small scales (1,000 lines), where the Python `real` time is significantly higher than the internal time compared to C.
+Both languages scaled linearly. As the input size increased by a factor of 10, the runtime generally increased by a factor of 10. However, the "startup cost" of Python is much more apparent at small scales (1,000 lines), where the Python `real` time is significantly higher than the internal time compared to C.
 
 ### System vs. User Time
 
