@@ -115,7 +115,7 @@ Benchmarked three different data distribution and collection methods across vari
 
 * **Method 1: DIY (Send/Recv Loop):** The Master loops through workers, sending distinct chunks. The Master acts as a sequential bottleneck.
 * **Method 2: Broadcast & Gather (`MPI_Bcast`):** The Master sends the *entire* array to everyone. Highly inefficient because it clogs network bandwidth with data the workers don't need.
-* **Method 3: Scatter & Reduce (`MPI_Scatter` / `MPI_Reduce`):** The Master slices the array and deals distinct chunks. Operations are calculated simultaneously via an optimized network tree.
+* **Method 3: Scatter & Reduce (`MPI_Scatter` / `MPI_Reduce`):** The Master slices the array and deals distinct chunks. Operations are calculated simultaneously via an optimised network tree.
 
 ### 4-Core Benchmarking Results
 
@@ -149,6 +149,6 @@ used `MPI_Op_create()` to build a custom array summation function and compared i
 | **10,000,000** | 10,000,000 | 10,000,000 | 0.000014 s | 0.000001 s |
 | **1,000,000,000** | 1,000,000,000 | 1,000,000,000 | 0.000030 s | 0.000001 s |
 
-**Conclusion:** The custom operation maintained 100% mathematical accuracy compared to the standard `MPI_SUM`. Interestingly, the custom implementation reported consistently lower timing overheads (often registering at just 1 microsecond). This extreme speed in the custom op timings is likely due to CPU cache hits on localised data or timing placement relative to the operator initialization, though the built-in `MPI_SUM` remains the standard for portability and hardware-level network optimisations.
+**Conclusion:** The custom operation maintained 100% mathematical accuracy compared to the standard `MPI_SUM`. Interestingly, the custom implementation reported consistently lower timing overheads (often registering at just 1 microsecond). This extreme speed in the custom op timings is likely due to CPU cache hits on localised data or timing placement relative to the operator initialisation, though the built-in `MPI_SUM` remains the standard for portability and hardware-level network optimisations.
 
 ---
