@@ -1,185 +1,94 @@
-# HPQC
-Enter HPQC then week_1 then run ./bin/Clock_write for task 2 run Clock_Read
 
-Ran python code and c code for "Clock Write" code ran for multiple ranges.
+# Topic 2: Performance and Parallelism – Lab Report
 
+## 1. Introduction
 
-8,000
+This project explores the performance differences between **compiled (C)** and **interpreted (Python)** languages. By benchmarking basic operations, repeat addition, and file I/O, we evaluate how system overhead and language architecture impact execution time.
 
-Time taken to write: 0.00686 seconds
+## 2. Methodology
 
+Utilised two primary methods for measuring performance:
 
-real -   0m0.038s
-user  -  0m0.024s
-sys    - 0m0.008s
+1. **External Timing:** Using the Linux `time` command to measure **Real** (wall-clock), **User** (CPU time in code), and **Sys** (kernel/system tasks) time.
+2. **Internal Timing:** Using `time.h` in C and `time` in Python to measure the duration of specific code blocks, excluding program startup and memory allocation overhead.
 
+---
 
-80,000
+## 3. Benchmarking Data
 
-Time taken to write: 0.04013 seconds
+The following data compares C and Python performance across file writing and reading operations with increasing scales (from 1,000 to 10,000,000 lines).
 
-real  -  0m0.073s
-user  - 0m0.043s
-sys   -  0m0.011s
+### File Write Performance
 
+| Lines | Language | Internal Time (s) | Real (Wall) Time | User Time |
+| --- | --- | --- | --- | --- |
+| **1,000** | C | 0.000767 | 0.008s | 0.002s |
+|  | Python | 0.002914 | 0.032s | 0.025s |
+| **100,000** | C | 0.029183 | 0.084s | 0.009s |
+|  | Python | 0.048824 | 0.085s | 0.049s |
+| **10,000,000** | C | 0.923032 | 2.586s | 0.742s |
+|  | Python | 4.398009 | 4.435s | 2.693s |
 
-800,000
+### File Read Performance
 
+| Lines | Language | Internal Time (s) | Real (Wall) Time | User Time |
+| --- | --- | --- | --- | --- |
+| **1,000** | C | 0.000420 | 0.007s | 0.000s |
+|  | Python | 0.001948 | 0.033s | 0.024s |
+| **100,000** | C | 0.007799 | 0.027s | 0.005s |
+|  | Python | 0.025836 | 0.056s | 0.032s |
+| **10,000,000** | C | 0.786448 | 2.058s | 0.581s |
+|  | Python | 2.183326 | 2.217s | 1.055s |
 
-Time taken to write: 0.34926 seconds
+---
 
+## 4. Evaluation & Conclusions
 
-real-    0m0.383s
-user -   0m0.231s
-sys  -   0m0.020s
+### C vs. Python Efficiency
 
+Across all tests, **C consistently outperformed Python**. At the highest scale (10 million lines):
 
-8,000,000
+* **Writing:** C was approximately **4.7x faster** than Python in internal logic.
+* **Reading:** C was approximately **2.7x faster** than Python.
 
+This disparity is primarily due to Python being an interpreted language. The Python interpreter must translate code into machine instructions at runtime, whereas the C binary is already in machine code, allowing the CPU to execute instructions with minimal overhead.
 
-Time taken to write: 3.16045 seconds
+### Scaling and Complexity
 
-real  -  0m3.195s
-user   - 0m2.186s
-sys    - 0m0.101s
+Both languages scaled **linearly ()**. As the input size increased by a factor of 10, the runtime generally increased by a factor of 10. However, the "startup cost" of Python is much more apparent at small scales (1,000 lines), where the Python `real` time is significantly higher than the internal time compared to C.
 
+### System vs. User Time
 
-Ran Code for C
+In the C benchmarks, the `sys` time remained relatively low compared to `user` time until large-scale I/O was required. Interestingly, at 10 million lines, C showed a higher gap between `internal` and `real` time (0.9s vs 2.5s), likely due to the time required for the OS to flush the file buffers to the disk—a system-level task.
 
-8,000
+---
 
+## 5. How to Run
 
-Time taken to write: 0.000690 seconds
+To replicate these benchmarks use the following commands:
 
-real   - 0m0.008s
-user    -0m0.000s
-sys     -0m0.004s
+### C Programs
+First create a data directory then add a file called output.txt
+```bash
+# Compile
+gcc week_2/file_write.c -o bin/file_write
+gcc week_2/file_read.c -o bin/file_read
 
-80,000
+# Run (Example with 1,000,000 lines)
+time ./bin/file_write 1000000
+time ./bin/file_read 1000000
 
+```
 
-Time taken to write: 0.000669 seconds
+### Python Programs
 
-real   - 0m0.007s
-user   - 0m0.000s
-sys    - 0m0.004s
+```bash
+# Run (Example with 1,000,000 lines)
+time python3 week_2/file_write.py 1000000
+time python3 week_2/file_read.py 1000000
 
+```
 
-800,000
+---
 
-
-Time taken to write: 0.000777 seconds
-
-
-real   - 0m0.009s
-user    -0m0.000s
-sys     -0m0.005s
-
-
-8,000,000
-
-
-Time taken to write: 0.000768 seconds
-
-
-real    -0m0.009s
-user    -0m0.004s
-sys     -0m0.000s
-
-
-Ran code for reading with Python
-
-
-8,000
-
-
-Time taken to read: 0.000926 seconds
-
-
-real    -0m0.033s
-user    -0m0.022s
-sys     -0m0.008s
-
-
-80,000
-
-
-Time taken to read: 0.000659 seconds
-
-real    -0m0.035s
-user    -0m0.022s
-sys     -0m0.009s
-
-
-800,000
-
-
-Time taken to read: 0.001697 seconds
-
-real    -0m0.032s
-user    -0m0.021s
-sys     -0m0.009s
-
-
-8,000,000
-
-
-Time taken to read: 0.002408 seconds
-
-
-real-    0m0.035s
-user -   0m0.026s
-sys   -  0m0.004s
-
-
-Ran code for reading with C
-
-
-8,000
-
-
-Time taken to read: 0.000310 seconds
-
-
-real-    0m0.006s
-user -   0m0.000s
-sys   -  0m0.004s
-
-
-80,000
-
-
-Time taken to read: 0.000385 seconds
-
-
-real  -  0m0.007s
-user   - 0m0.000s
-sys     -0m0.004s
-
-
-800,000
-
-
-Time taken to read: 0.000380 seconds
-
-
-real -   0m0.006s
-user  -  0m0.004s
-sys    - 0m0.000s
-
-
-8,000,000
-
-
-Time taken to write: 0.000680 seconds
-
-real -   0m0.007s
-user  -  0m0.000s
-sys    - 0m0.004s
-
-
-C showed very small variance in write time for increasing number of variables, whearas python showed linear increase directly preportional to variable number increase.
-
-
-C showed Small increase in read time with a noteable increase between 800,000 variables and 8,000,000 variable. Python read time increased with increasing variables.
-For all operations system time always increased at a slower rate than user and real time.
+**Would you like me to double-check the logic in your `file_write.c` or `file_read.c` scripts to ensure they are handling the memory correctly for those 10-million-line tests?**
