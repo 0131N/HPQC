@@ -11,7 +11,7 @@ This lab transitions from single-core performance to Distributed Memory Programm
 
 ### Task 1: MPI Environment Scaling
 
-We tested the basic MPI synchronization by scaling the "Hello World" program from 3 to 6 processors.
+We tested the basic MPI synchronisation by scaling the "Hello World" program from 3 to 6 processors.
 
 * **Observation:** The output order is non-deterministic (Rank 2 might print before Rank 0) because each process operates in its own memory space and execution speed varies slightly across the cluster.
 
@@ -19,7 +19,7 @@ We tested the basic MPI synchronization by scaling the "Hello World" program fro
 
 We implemented architecture to perform distributed arithmetic:
 
-* **Root Task (Rank 0):** Acts as the aggregator. It initializes the sum to 0 and enters a loop to `MPI_Recv` values from all other processes.
+* **Root Task (Rank 0):** Acts as the aggregator. It initialises the sum to 0 and enters a loop to `MPI_Recv` values from all other processes.
 * **Client Task (Rank > 0):** Performs a local calculation () and uses `MPI_Send` to transmit the result to the Root.
 
 ### Task 3: Vector Addition (Serial vs. Parallel)
@@ -61,9 +61,9 @@ The following data tracks the "Wall Clock" (Real) time for summing vectors of in
 
 ### The Cost of Communication (Overhead)
 
-At small scales the **Serial** code is significantly faster than the Parallel code.
+At small scales the Serial code is significantly faster than the Parallel code.
 
-This is because Parallelism introduces "MPI Overhead." The time it takes to initialize the MPI environment and send messages across the network is much greater than the time saved by splitting a small calculation.
+This is because Parallelism introduces "MPI Overhead." The time it takes to initialise the MPI environment and send messages across the network is much greater than the time saved by splitting a small calculation.
 
 ### The Ideal value for Parallelism
 
