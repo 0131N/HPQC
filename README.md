@@ -18,12 +18,12 @@ The initial serial code was restructured to handle dynamic user input. I impleme
 
 ### Domain Decomposition
 
-To parallelise the workload, the string is divided into equal "chunks." Each MPI rank is responsible for its local segment. However, since wave propagation is interdependent, I implemented **Ghost Cell Exchange**.
+To parallelise the workload, the string is divided into equal chunks. Each MPI rank is responsible for its local segment. However, since wave propagation is interdependent, I implemented Ghost Cell Exchange.
 
 * **Left-to-Right Propagation:** Rank  sends its last point to Rank  and receives the last point of Rank  as a ghost cell.
-* **Aggregation Strategy:** To avoid race conditions and file corruption, an **In-Memory Aggregation** strategy was used.
+* **Aggregation Strategy:** To avoid race conditions and file corruption, an In-Memory Aggregation strategy was used.
 1. Worker ranks compute their local physics.
-2. `MPI_Gather` collects all local arrays onto **Rank 0**.
+2. `MPI_Gather` collects all local arrays onto Rank 0.
 3. **Rank 0** performs the serial I/O task of writing the full string state to the CSV.
 
 
@@ -36,14 +36,14 @@ To parallelise the workload, the string is divided into equal "chunks." Each MPI
 
 The simplistic model was replaced with a Newtonian spring-mass system. Each point  is treated as a mass  connected by springs of stiffness . The acceleration  is calculated using the relative displacement of neighbors:
 
-The simulation tracks both **Position ()** and **Velocity ()**, updating them via the Semi-Implicit Euler method:
+The simulation tracks both Position and Velocity, updating them via the Semi-Implicit Euler method:
 
 1. 
 2. 
 
 ### Cartesian Communicator
 
-To handle the bidirectional communication required by Hooke's Law , I implemented a **1D Cartesian Topology** using `MPI_Cart_create`. This allows for neighbor discovery via `MPI_Cart_shift`, which automatically handles the boundaries .
+To handle the bidirectional communication required by Hooke's Law , I implemented a 1D Cartesian Topology using `MPI_Cart_create`. This allows for neighbor discovery via `MPI_Cart_shift`, which automatically handles the boundaries .
 
 
 ---
@@ -52,7 +52,7 @@ To handle the bidirectional communication required by Hooke's Law , I implemente
 
 ### Serial vs. Parallel
 
-Using the collected data for the "Follow the Leader" model (Part 2), I observe the following wall-clock times:
+Wall-clock times:
 
 | Points () | 1 Processor (Serial) | 2 Processors | 5 Processors |
 | --- | --- | --- | --- |
@@ -61,7 +61,7 @@ Using the collected data for the "Follow the Leader" model (Part 2), I observe t
 | 500,000 | **12.500s** | **12.438s** | **14.088s** |
 
 **Analysis of Bottlenecks:**
-The data reveals a "Parallel Overhead Trap." In theory, 5 processors should be nearly 5x faster than one. However, our 5-processor run was actually **12.7% slower** than the serial run at 500,000 points.
+The data reveals an Overhead. In theory, 5 processors should be nearly 5x faster than one. However, the 5-processor run was actually 12.7% slower than the serial run at 500,000 points.
 
 1. **The I/O Bottleneck:** The current code gathers all data to Rank 0 to write a CSV. Writing 500,000 columns per row to a disk is a massive serial operation.
 2. **Aggregation Costs:** `MPI_Gather` requires moving 500,000 doubles across the network/interconnect. The time spent communicating outweighs the time saved in the simple  calculation loop.
@@ -78,7 +78,7 @@ In Part 3, I varied the stiffness-to-mass ratio (k/m). While k/m is a physical c
 | 6400 | **2.770s** | **Numerical Explosion** |
 
 **time increase**
-When  is too high, the acceleration values exceed the precision of the `double` data type within the given time step (). This leads to `NaN` or `Inf` values. Processing these "non-numbers" in the floating-point unit (FPU) and writing them as long text strings to the CSV significantly slows down the execution time. This is a violation of the ** Courant-Friedrichs-Lewy Condition**, which dictates that information cannot travel across the simulation grid faster than the time-step allows.
+When  is too high, the acceleration values exceed the precision of the `double` data type within the given time step . This leads to `NaN` or `Inf` values. Processing these "non-numbers" in the floating-point unit and writing them as long text strings to the CSV significantly slows down the execution time. This is a violation of the Courant-Friedrichs-Lewy Condition, which dictates that information cannot travel across the simulation grid faster than the time-step allows.
 
 ---
 
