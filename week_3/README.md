@@ -7,7 +7,7 @@
 
 ## Part 1: Demonstrating Point-to-Point Communications
 
-###Initial Execution & Output Ordering (comm_test_mpi.c)###
+### Initial Execution & Output Ordering (comm_test_mpi.c) ###
 To establish a baseline, compiled and ran the un-functionalised comm_test_mpi code across varying numbers of processors (2, 3, 4, and 5).
 
 Observations from the 4- and 5-Processor Runs:
