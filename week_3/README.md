@@ -4,15 +4,10 @@
 
 # Topic 4: MPI Communications – Lab Report
 
-## 1. Introduction
 
-This project explores the mechanics of message passing in distributed memory systems using MPI. Point-to-point communication modes are investigated, benchmark network latency and bandwidth via "Ping_Pong" tests. While comparing the preformance of manual communication loops against highly optimised collective operations.
+## Part 1: Demonstrating Point-to-Point Communications
 
----
-
-## 2. Part 1: Demonstrating Point-to-Point Communications
-
-###Initial Execution & Output Ordering (comm_test_mpi.c)
+###Initial Execution & Output Ordering (comm_test_mpi.c)###
 To establish a baseline, compiled and ran the un-functionalised comm_test_mpi code across varying numbers of processors (2, 3, 4, and 5).
 
 Observations from the 4- and 5-Processor Runs:
@@ -31,9 +26,9 @@ Hello, I am 0 of 5. Received 40 from Rank 4
 
 Analysis of the Behavior:
 
-Non-Deterministic Terminal Output: Worker 4 and Worker 2 print their "Sent" messages before Worker 1, and Rank 0's "Received" messages are mixed in between. This confirms that all worker processes are executing concurrently. Because each process runs in its own memory space, they hit their printf statements at slightly different times, and the operating system's standard output buffer flushes them to the terminal in a random, non-deterministic order.
+Non-Deterministic Terminal Output: Worker 4 and Worker 2 print their Sent messages before Worker 1, and Rank 0's "Received" messages are mixed in between. This confirms that all worker processes are executing concurrently. Because each process runs in its own memory space, they hit their printf statements at slightly different times, and the operating system's standard output buffer flushes them to the terminal in a random, non-deterministic order.
 
-Deterministic Receiving: Despite the chaotic order of the "Sent" print statements, Rank 0 always processes the received messages in perfect numerical order. This is because Rank 0 is executing a strict for loop, specificaly targeting MPI_Recv from Rank i. Even if Rank 4's message arrives at the destination node first, Rank 0 will leave it in the network buffer until it has finished receiving from Ranks 1, 2, and 3.
+Deterministic Receiving: Despite the chaotic order of the Sent print statements, Rank 0 always processes the received messages in perfect numerical order. This is because Rank 0 is executing a strict for loop, specificaly targeting MPI_Recv from Rank i. Even if Rank 4's message arrives at the destination node first, Rank 0 will leave it in the network buffer until it has finished receiving from Ranks 1, 2, and 3.
 
 ### Execution Order & System Noise
 
@@ -75,7 +70,7 @@ Tested the four variants of the send command.
 
 ---
 
-## 3. Part 2: Benchmarking Latency and Bandwidth (Ping-Pong)
+## Part 2: Benchmarking Latency and Bandwidth (Ping-Pong)
 
 ### Latency Convergence
 
@@ -107,7 +102,7 @@ These results map to a linear equation representing network transit:
 
 ---
 
-## 4. Part 3: Collective Communications
+## Part 3: Collective Communications
 
 Benchmarked three different data distribution and collection methods across various array sizes and core counts.
 
@@ -136,7 +131,7 @@ During the 6-core test, the sum outputs returned anomalous values (e.g., `996` i
 
 ---
 
-## 5. Custom Reduce Operation
+## Custom Reduce Operation
 
 used `MPI_Op_create()` to build a custom array summation function and compared it against the built-in `MPI_SUM` operator.
 
@@ -149,6 +144,6 @@ used `MPI_Op_create()` to build a custom array summation function and compared i
 | **10,000,000** | 10,000,000 | 10,000,000 | 0.000014 s | 0.000001 s |
 | **1,000,000,000** | 1,000,000,000 | 1,000,000,000 | 0.000030 s | 0.000001 s |
 
-**Conclusion:** The custom operation maintained 100% mathematical accuracy compared to the standard `MPI_SUM`. Interestingly, the custom implementation reported consistently lower timing overheads (often registering at just 1 microsecond). This extreme speed in the custom op timings is likely due to CPU cache hits on localised data or timing placement relative to the operator initialisation, though the built-in `MPI_SUM` remains the standard for portability and hardware-level network optimisations.
+**Conclusion:** The custom operation maintained 100% mathematical accuracy compared to the standard `MPI_SUM`. Interestingly, the custom implementation reported consistently lower timing overheads often registering at just 1 microsecond. This extreme speed in the custom op timings is likely due to CPU cache hits on localised data or timing placement relative to the operator initialisation, though the built-in `MPI_SUM` remains the standard for portability and hardware-level network optimisations.
 
 ---
