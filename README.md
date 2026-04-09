@@ -36,10 +36,7 @@ To parallelise the workload, the string is divided into equal chunks. Each MPI r
 
 The simplistic model was replaced with a Newtonian spring-mass system. Each point  is treated as a mass  connected by springs of stiffness . The acceleration  is calculated using the relative displacement of neighbors:
 
-The simulation tracks both Position and Velocity, updating them via the Semi-Implicit Euler method:
-
-1. 
-2. 
+The simulation tracks both Position and Velocity, updating them via the Semi-Implicit Euler method.
 
 ### Cartesian Communicator
 
