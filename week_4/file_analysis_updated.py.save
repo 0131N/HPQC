@@ -1,0 +1,79 @@
+import sys
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from pathlib import Path
+matplotlib.use('Agg')
+
+def generate_path(home_folder=str(Path.home()), subfolder='/data/', basename='output', extension='txt'):
+    """Generates a file path. Defaulting to ~/data/ folder."""
+    return f"{home_folder}{subfolder}{basename}.{extension}"
+
+def get_file_names(extension="csv"):
+    try:
+        input_filename = sys.argv[1]
+    except IndexError:
+        print(f"Usage: python3 {sys.argv[0]} [INPUT_FILE].{extension} [OUTPUT_NAME]")
+        exit(-1)
+    
+    try:
+        output_basename = sys.argv[2]
+    except IndexError:
+        output_basename = 'animated_output'
+        
+    return input_filename, output_basename
+
+def get_data(filename):
+    # 'other=2' accounts for the index and time columns in your CSV
+    data = pd.read_csv(filename, skipinitialspace=True)
+    num_positions = len(data.columns) - 2
+    num_times = len(data)
+    return data, num_positions, num_times
+
+def extract_position(data, i=0):
+    row = data.iloc[i]
+    y_positions = np.array(row[2:]).flatten()
+    x_positions = np.arange(len(y_positions))
+    return x_positions, y_positions
+
+def configure_animation(frame_count, fps=25):
+    interval = max([int(1000 / fps), 1])
+    return interval, fps
+
+def configure_plot(x_positions, y_positions):
+    fig, ax = plt.subplots()
+    ax.set_ylim(-1.1, 1.1)
+    rope, = ax.plot(x_positions, y_positions, "o", markersize=5, color="green")
+    return fig, rope
+
+def animate(frame, data, rope):
+    _, y_vals = extract_position(data, i=frame)
+    rope.set_ydata(y_vals)
+    return rope,
+
+def main():
+    # 1. Get arguments
+    input_filename, output_basename = get_file_names("csv")
+
+    # 2. Load data
+    print(f"Reading {input_filename}...")
+    data, num_positions, num_times = get_data(input_filename)
+
+    # 3. Setup Plot
+    interval, fps = configure_animation(num_times)
+    x_pos, y_pos = extract_position(data)
+    fig, rope = configure_plot(x_pos, y_pos)
+
+    # 4. Create Animation
+    ani = animation.FuncAnimation(fig, animate, frames=num_times, 
+                                  interval=interval, blit=True, fargs=(data, rope))
+
+    # 5. Save
+    output_path = generate_path(basename=output_basename, extension='gif')
+    print(f"Generating animation... this may take a moment.")
+    ani.save(filename=output_path, writer="pillow", fps=fps)
+    print(f"Successfully saved to: {output_path}")
+
+if __name__ == "__main__":
+    main()

@@ -1,31 +1,33 @@
 // comm_test_mpi_final.c
 #include <stdio.h>
+#include <stdlib.h> // Required for malloc and free
 #include <mpi.h>
 
 void run_master(int total_processes) {
     int recv_message;
     MPI_Status status;
-    
+
     printf("--- Master Starting Reception ---\n");
     for (int i = 1; i < total_processes; i++) {
         MPI_Recv(&recv_message, 1, MPI_INT, i, 0, MPI_COMM_WORLD, &status);
         printf("[Master] Received %d from Rank %d\n", recv_message, i);
     }
 }
+
 void worker_code_bsend(int my_rank) {
     int send_message = my_rank * 10;
     int dest = 0;
     int tag = 0;
-    
+
     // 1. Calculate buffer size (Data size + MPI Overhead)
     int buffer_size = MPI_BSEND_OVERHEAD + sizeof(int);
     void *buffer = malloc(buffer_size);
-    
+
     // 2. Attach the buffer to MPI
     MPI_Buffer_attach(buffer, buffer_size);
 
     printf("[Worker %d] Bsend (Buffered)...\n", my_rank);
-    
+
     // 3. Perform Buffered Send (Returns immediately after copying to buffer)
     MPI_Bsend(&send_message, 1, MPI_INT, dest, tag, MPI_COMM_WORLD);
 
@@ -38,10 +40,14 @@ void worker_code_bsend(int my_rank) {
 
 int main(int argc, char **argv) {
     int my_rank, uni_size;
-    
+    double start_time, end_time; 
+
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &uni_size);
+
+    // Get the starting time using MPI_Wtime
+    start_time = MPI_Wtime();
 
     // GUARD CLAUSE: Check for errors first, then proceed
     if (uni_size < 2) {
@@ -54,8 +60,15 @@ int main(int argc, char **argv) {
     if (my_rank == 0) {
         run_master(uni_size);
     } else {
-        run_worker(my_rank);
+        // Fixed: Call the actual function name defined above
+        worker_code_bsend(my_rank); 
     }
+
+    // Get the ending time
+    end_time = MPI_Wtime();
+    
+    // Print the elapsed time
+    printf("[RANK %d] took %f s to send/recv\n", my_rank, end_time - start_time);
 
     MPI_Finalize();
     return 0;

@@ -35,11 +35,11 @@ void worker_code_isend(int my_rank) {
 
 int main(int argc, char **argv) {
     int my_rank, uni_size;
-    
+    double start_time, end_time;
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &uni_size);
-
+    start_time = MPI_Wtime();
     // GUARD CLAUSE: Check for errors first, then proceed
     if (uni_size < 2) {
         if (my_rank == 0) printf("Error: Run with at least 2 processes (e.g. -np 2)\n");
@@ -51,9 +51,10 @@ int main(int argc, char **argv) {
     if (my_rank == 0) {
         run_master(uni_size);
     } else {
-        run_worker(my_rank);
+        worker_code_isend(my_rank);
     }
-
+    end_time = MPI_Wtime();
+    printf("[Rank %d] took %f s to send /recv\n",my_rank, end_time - start_time);
     MPI_Finalize();
     return 0;
 }
