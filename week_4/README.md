@@ -1,139 +1,149 @@
 
----
-
-# String Oscillation Simulation: From Serial Logic to MPI Physics
-
-
-
-## Part 1: Architecture & Flexibility
-
-The initial serial code was restructured to handle dynamic user input. I implemented a `SimConfig` struct to bundle simulation parameters, allowing for easier data management and cleaner function signatures.
-
-* **Command Line Arguments:** Users can specify `points`, `cycles`, `samples`, and `filepath` at runtime.
-* **Memory Management:** Arrays are dynamically allocated based on the `points` argument, ensuring the simulation scales from small test cases to high-resolution models.
 
 ---
 
-## Part 2: Parallel Strategy & Aggregation
-
-### Domain Decomposition
-
-To parallelise the workload, the string is divided into equal chunks. Each MPI rank is responsible for its local segment. However, since wave propagation is interdependent, I implemented Ghost Cell Exchange.
-
-* **Left-to-Right Propagation:** Rank  sends its last point to Rank  and receives the last point of Rank  as a ghost cell.
-* **Aggregation Strategy:** To avoid race conditions and file corruption, an In-Memory Aggregation strategy was used.
-1. Worker ranks compute their local physics.
-2. `MPI_Gather` collects all local arrays onto Rank 0.
-3. **Rank 0** performs the serial I/O task of writing the full string state to the CSV.
+# Topic 4: MPI Communications – Lab Report
 
 
+## Part 1: Demonstrating Point-to-Point Communications
 
----
+### Initial Execution & Output Ordering (comm_test_mpi.c) ###
+To establish a baseline, compiled and ran the un-functionalised comm_test_mpi code across varying numbers of processors (2, 3, 4, and 5).
 
-##  Part 3: Hooke's Law & Cartesian Topology
+Observations from the 4- and 5-Processor Runs:
+When running with 4 and 5 processors, the terminal output became highly staggered. For example, in the 5-processor run:
 
-### Improved Physics Model
+```bash
+Hello, I am 4 of 5. Sent 40 to Rank 0
+Hello, I am 2 of 5. Sent 20 to Rank 0
+Hello, I am 3 of 5. Sent 30 to Rank 0
+Hello, I am 0 of 5. Received 10 from Rank 1
+Hello, I am 0 of 5. Received 20 from Rank 2
+Hello, I am 1 of 5. Sent 10 to Rank 0
+Hello, I am 0 of 5. Received 30 from Rank 3
+Hello, I am 0 of 5. Received 40 from Rank 4
+```
 
-The simplistic model was replaced with a Newtonian spring-mass system. Each point  is treated as a mass  connected by springs of stiffness . The acceleration  is calculated using the relative displacement of neighbors:
+Analysis of the Behavior:
 
-The simulation tracks both Position and Velocity, updating them via the Semi-Implicit Euler method.
+Non-Deterministic Terminal Output: Worker 4 and Worker 2 print their Sent messages before Worker 1, and Rank 0's "Received" messages are mixed in between. This confirms that all worker processes are executing concurrently. Because each process runs in its own memory space, they hit their printf statements at slightly different times, and the operating system's standard output buffer flushes them to the terminal in a random, non-deterministic order.
 
-### Cartesian Communicator
+Deterministic Receiving: Despite the chaotic order of the Sent print statements, Rank 0 always processes the received messages in perfect numerical order. This is because Rank 0 is executing a strict for loop, specificaly targeting MPI_Recv from Rank i. Even if Rank 4's message arrives at the destination node first, Rank 0 will leave it in the network buffer until it has finished receiving from Ranks 1, 2, and 3.
 
-To handle the bidirectional communication required by Hooke's Law , I implemented a 1D Cartesian Topology using `MPI_Cart_create`. This allows for neighbor discovery via `MPI_Cart_shift`, which automatically handles the boundaries .
+### Execution Order & System Noise
 
+When running the baseline `MPI_Send` and `MPI_Recv` routines across multiple processors, the output logs appeared out of order. This is expected behavior. Because each process runs independently, network buffering and OS background tasks cause micro-fluctuations in execution time.
 
----
+### MPI Send Modes Compared
 
-## Benchmarking
+Tested the four variants of the send command.
 
-### Serial vs. Parallel
+**Benchmarking Data (4-Processor Run)**
 
-Wall-clock times:
-
-| Points () | 1 Processor (Serial) | 2 Processors | 5 Processors |
+| Rank | `MPI_Ssend` Time (s) | `MPI_Bsend` Time (s) | `MPI_Isend` Time (s) |
 | --- | --- | --- | --- |
-| 5,000 | 0.129s | 0.127s | 0.173s |
-| 50,000 | 1.249s | 1.242s | 1.339s |
-| 500,000 | **12.500s** | **12.438s** | **14.088s** |
+| **Worker 1** | 0.000070 s | 0.000073 s | 0.000077 s |
+| **Worker 2** | 0.000131 s | 0.000057 s | 0.000054 s |
+| **Worker 3** | 0.000212 s | 0.000048 s | 0.000059 s |
+| **Master (0)** | 0.000136 s | 0.000176 s | 0.000205 s |
 
-**Analysis of Bottlenecks:**
-The data reveals an Overhead. In theory, 5 processors should be nearly 5x faster than one. However, the 5-processor run was actually 12.7% slower than the serial run at 500,000 points.
+*(Note: `MPI_Rsend` is excluded from the table as it caused the program to hang/crash in tests.)*
 
-1. **The I/O Bottleneck:** The current code gathers all data to Rank 0 to write a CSV. Writing 500,000 columns per row to a disk is a massive serial operation.
-2. **Aggregation Costs:** `MPI_Gather` requires moving 500,000 doubles across the network/interconnect. The time spent communicating outweighs the time saved in the simple  calculation loop.
+### Analysis of the Send Methods
 
- Impact of k/m on Computational Load
+1. **`MPI_Ssend` (Synchronous Send):** The safest, but potentially slowest method. The sender explicitly blocks until the receiver acknowledges it is ready to receive.
+ There is a blocking penaltty in the data. Worker 3 took significantly longer than Worker 1 as the Master was busy talking to Worker 1 and Worker 2 first. That waiting time gets added to Worker 3's benchmark.
 
-In Part 3, I varied the stiffness-to-mass ratio (k/m). While k/m is a physical constant, it has a profound impact on the stability of the numerical solver.
 
-|  Value | Time (4 Processors, 1000 Pts) | State |
-| --- | --- | --- |
-| 10 | 0.123s | Stable |
-| 800 | 0.176s | Stable |
-| 3200 | 0.574s | Approaching Instability |
-| 6400 | **2.770s** | **Numerical Explosion** |
+2. **`MPI_Rsend` (Ready Send):** Faster because ; skips the handshake entirely. If the receiver is not already waiting, the program will crash.
+ In tests, running this caused the processes to hang indefinitely. Adding `MPI_Barrier` caused more failures here because the root process takes a microsecond longer to leave the barrier and reach its `MPI_Recv` than the workers take to reach `MPI_Rsend`.
 
-**time increase**
-When  is too high, the acceleration values exceed the precision of the `double` data type within the given time step . This leads to `NaN` or `Inf` values. Processing these "non-numbers" in the floating-point unit and writing them as long text strings to the CSV significantly slows down the execution time. This is a violation of the Courant-Friedrichs-Lewy Condition, which dictates that information cannot travel across the simulation grid faster than the time-step allows.
 
----
+3. **`MPI_Bsend` (Buffered Send):** Copies data into a buffer and returns immediately, decoupling the sender from the receiver.
+ Because the workers just drop their data in a buffer and leave, their timings are incredibly fast and consistent , without the escalating delay seen in `Ssend`. However, it requires manual buffer allocation; failing to allocate enough memory causes a `MPI_ERR_BUFFER` crash.
 
-## Viability of Parallelism
 
-**Does this task demand a parallel solution?**
-
-* **For the current implementation: No.** Because the calculation for Hooke's Law is mathematically non-taxing and the I/O  is computationally expensive, adding more cores only increases the communication overhead without solving the primary bottleneck .
-* **When does it become viable?** Parallelisation would become viable if:
-1. **I used Parallel I/O:** Using `MPI-IO` to let every rank write to different parts of the file simultaneously.
-2. **Increased Complexity:** If the problem moved to a 3D wave equation or a complex Molecular Dynamics simulation where the math per point is much more intense.
-3. **Higher Resolution:** At millions of points, the memory might exceed a single machine's RAM, making distributed memory  a requirement for capacity, even if not for speed.
+4. **`MPI_Isend` (Non-Blocking Send):** Allows the process to initiate the send and immediately move on to other computations while the message files in the background.
+ Similar to `Bsend`, the worker times are low and stable because they do not have to wait for the Master to be ready. This is highly efficient for overlapping calculation with communication.
 
 
 
 ---
 
-## Graph Analysis
+## Part 2: Benchmarking Latency and Bandwidth (Ping-Pong)
 
-### Part 2: The "Copy" Model
+### Latency Convergence
 
-The animation for Part 2 shows a perfect, non-dispersive sine wave sliding to the right.
+Sending a message causes system overhead regardless of size. By sending an empty/tiny message back and forth, this latency was measured.
 
-* **Does it make sense?** Yes. Since each point  simply takes the value of  from the previous step, the initial driver signal is shifted perfectly. There is no tension to pull the string back, so the wave never changes shape or reflects; it simply exits the domain.
+* **10 Pings:** Avg Latency = 0.000004 s (Highly susceptible to background CPU spikes).
+* **10,000,000 Pings:** Avg Latency = 0.000000 s (Averages out noise, converging on stable microsecond latency).
 
-### The Hooke's Law Model
+### Bandwidth Calculation
 
-The animation for Part 3 shows a wave that oscillates, dampens slightly, and most reflects.
+Scaled the message size from 8 Bytes up to 2 MiB to measure network capacity.
 
-* **Does it make sense?**  Yes. By using , I allow the string to act as a continuous medium. When the wave hits the fixed boundary (`local_pos[last] = 0`), the stored potential energy in the spring at the wall exerts a counter-force, sending the wave back in the opposite direction. This mimics a real system.
+* **8 Bytes:** 0.000000 s per message
+* **1,024 Bytes (1 KiB):** 0.000001 s per message
+* **1,048,576 Bytes (1 MiB):** 0.000127 s per message
+* **2,097,152 Bytes (2 MiB):** 0.000248 s per message
+
+**The Mathematical Model:**
+These results map to a linear equation representing network transit:
+
+
+ $$y = mx + c$$ 
+ 
+ Where:
+* y  = Total time to send
+* x  = Message size (Bytes)
+* c  = Latency (The y-intercept; time to send 0 bytes)
+* m = $1/(Bandwidth) =  The slope
 
 ---
 
+## Part 3: Collective Communications
 
+Benchmarked three different data distribution and collection methods across various array sizes and core counts.
 
+### Data Distribution Architectures
 
+* **Method 1: DIY (Send/Recv Loop):** The Master loops through workers, sending distinct chunks. The Master acts as a sequential bottleneck.
+* **Method 2: Broadcast & Gather (`MPI_Bcast`):** The Master sends the *entire* array to everyone. Highly inefficient because it clogs network bandwidth with data the workers don't need.
+* **Method 3: Scatter & Reduce (`MPI_Scatter` / `MPI_Reduce`):** The Master slices the array and deals distinct chunks. Operations are calculated simultaneously via an optimised network tree.
+
+### 4-Core Benchmarking Results
+
+| Array Size | Method 1 (DIY) | Method 2 (Bcast) | Method 3 (Scatter/Reduce) |
+| --- | --- | --- | --- |
+| **1,000** | 0.000040 s | 0.000060 s | **0.000011 s** |
+| **100,000** | 0.000578 s | 0.001361 s | **0.000292 s** |
+| **10,000,000** | 0.036731 s | 0.064964 s | **0.018434 s** |
+| **1,000,000,000** | 5.300258 s | 8.425657 s | **2.646611 s** |
+
+**Observation:** `MPI_Scatter` and `MPI_Reduce` (Method 3) consistently out-performed the other methods, processing 1 billion elements in half the time of the DIY method. As predicted, Broadcast was the slowest due to the massive memory overhead of duplicating 1 billion elements to every node.
+
+### The Integer Truncation Anomaly (6 Cores)
+
+During the 6-core test, the sum outputs returned anomalous values (e.g., `996` instead of `1000`, and `999999996` instead of `1,000,000,000`).
+
+* **Cause:** This is a result of truncation. When slicing an array of 1,000 elements across 6 processors, the C integers leave 4 elements uncalculated. In production environments, remainder logic must be implemented to handle array sizes not perfectly divisible by the processor count.
 
 ---
 
-## How to Run
+## Custom Reduce Operation
 
-### Compilation
+used `MPI_Op_create()` to build a custom array summation function and compared it against the built-in `MPI_SUM` operator.
 
-```bash
-mpicc HPQC/week_4/string_wave_hookes_law.c -o bin/string_wave_hookes_law -lm
+### Accuracy & Performance (4 Cores)
 
-```
+| Array Size | Built-in Sum | Custom Sum | Built-in Time | Custom Time |
+| --- | --- | --- | --- | --- |
+| **1,000** | 1,000 | 1,000 | 0.000010 s | 0.000005 s |
+| **100,000** | 100,000 | 100,000 | 0.000018 s | 0.000003 s |
+| **10,000,000** | 10,000,000 | 10,000,000 | 0.000014 s | 0.000001 s |
+| **1,000,000,000** | 1,000,000,000 | 1,000,000,000 | 0.000030 s | 0.000001 s |
 
-### Execution
+**Conclusion:** The custom operation maintained 100% mathematical accuracy compared to the standard `MPI_SUM`. Interestingly, the custom implementation reported consistently lower timing overheads often registering at just 1 microsecond. This extreme speed in the custom op timings is likely due to CPU cache hits on localised data or timing placement relative to the operator initialisation, though the built-in `MPI_SUM` remains the standard for portability and hardware-level network optimisations.
 
-```bash
-mpirun -np 4 ./bin/string_wave_hookes_law <points> <cycles> <samples> <output.csv>
-
-```
-
-### Visualisation
-
-```bash
-python3 animate_line_file_updated.py data/output.csv my_animation
-
-```
+---
